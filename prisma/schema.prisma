@@ -1,66 +1,289 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
-    provider = "prisma-client-js"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-    provider = "sqlite"
-    // NOTE: When using postgresql, mysql or sqlserver, uncomment the @db.Text annotations in model Account below
-    // Further reading:
-    // https://next-auth.js.org/adapters/prisma#create-the-prisma-schema
-    // https://www.prisma.io/docs/reference/api-reference/prisma-schema-reference#string
-    url      = env("DATABASE_URL")
+  provider = "mysql"
+  url      = env("DATABASE_URL")
 }
 
-model Example {
-    id        String   @id @default(cuid())
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+model atributes {
+  id               Int               @id
+  basal_health     Int?
+  bonus_health     Int?
+  extra_health     Int?
+  basal_attack     Int?
+  bonus_attack     Int?
+  extra_attack     Int?
+  basal_sp_attack  Int?
+  bonus_sp_attack  Int?
+  extra_sp_attack  Int?
+  basal_defense    Int?
+  bonus_defense    Int?
+  extra_defense    Int?
+  basal_sp_defense Int?
+  bonus_sp_defense Int?
+  extra_sp_defense Int?
+  basal_speed      Int?
+  bonus_speed      Int?
+  extra_speed      Int?
+  game_class     game_class[]
+  pokemon          pokemon[]
+  pokemon_species  pokemon_species[]
+  trainer          trainer[]
 }
 
-// Necessary for Next auth
-model Account {
-    id                String  @id @default(cuid())
-    userId            String
-    type              String
-    provider          String
-    providerAccountId String
-    refresh_token     String? // @db.Text
-    access_token      String? // @db.Text
-    expires_at        Int?
-    token_type        String?
-    scope             String?
-    id_token          String? // @db.Text
-    session_state     String?
-    user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-    @@unique([provider, providerAccountId])
+model player {
+  username String    @id @db.VarChar(64)
+  password String?   @db.VarChar(64)
+  master   Int?      @db.TinyInt
+  trainer  trainer[]
 }
 
-model Session {
-    id           String   @id @default(cuid())
-    sessionToken String   @unique
-    userId       String
-    expires      DateTime
-    user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+model trainer {
+  username      String          @db.VarChar(64)
+  name          String          @db.VarChar(100)
+  level         Int?
+  age           Int?
+  weight        Decimal?        @db.Decimal(5, 2)
+  height        Int?
+  atributes_id  Int
+  bag           bag?
+  box           box[]
+  atributes     atributes       @relation(fields: [atributes_id], references: [id], onDelete: Cascade, map: "fk_trainer_atributes1")
+  player        player          @relation(fields: [username], references: [username], onDelete: Cascade, map: "fk_trainer_player")
+  trainer_class trainer_class[]
+
+  @@id([username, name])
+  @@index([atributes_id], map: "fk_trainer_atributes1")
 }
 
-model User {
-    id            String    @id @default(cuid())
-    name          String?
-    email         String?   @unique
-    emailVerified DateTime?
-    image         String?
-    accounts      Account[]
-    sessions      Session[]
+
+model attack {
+  id_attack         Int                 @id
+  name              String?             @db.VarChar(64)
+  range             Int?
+  area              Int?
+  type_damage       String?             @db.VarChar(64)
+  damage            String?             @db.VarChar(100)
+  
+  type_id_type      Int
+  type              type                @relation(fields: [type_id_type], references: [id_type], onDelete: Cascade, map: "fk_attack_type1")
+  
+  attack_has_effect attack_has_effect[]
+  learns            learns[]
+  moveset           moveset[]
+
+  @@index([type_id_type], map: "fk_attack_type1")
 }
 
-model VerificationToken {
-    identifier String
-    token      String   @unique
-    expires    DateTime
+model attack_has_effect {
+  id_attack Int
+  id_effect Int
+  attack    attack @relation(fields: [id_attack], references: [id_attack], onDelete: Cascade, map: "fk_attack_has_effect_attack1")
+  effect    effect @relation(fields: [id_effect], references: [id_effect], onDelete: Cascade, map: "fk_attack_has_effect_effect1")
 
-    @@unique([identifier, token])
+  @@id([id_attack, id_effect])
+  @@index([id_effect], map: "fk_attack_has_effect_effect1")
+}
+
+model bag {
+  trainer_player_usuario String         @db.VarChar(64)
+  trainer_nome           String         @db.VarChar(100)
+  spaces                 Int?
+  trainer                trainer        @relation(fields: [trainer_player_usuario, trainer_nome], references: [username, name], onUpdate: Restrict, map: "fk_trainer_bag")
+  bag_has_item           bag_has_item[]
+
+  @@id([trainer_player_usuario, trainer_nome])
+}
+
+model bag_has_item {
+  bag_trainer_player_usuario String @db.VarChar(64)
+  bag_trainer_nome           String @db.VarChar(100)
+  item_id_item               Int
+  bag                        bag    @relation(fields: [bag_trainer_player_usuario, bag_trainer_nome], references: [trainer_player_usuario, trainer_nome], onDelete: Cascade, map: "fk_bag_has_item_bag1")
+  item                       item   @relation(fields: [item_id_item], references: [id_item], onDelete: Cascade, map: "fk_bag_has_item_item1")
+
+  @@id([bag_trainer_player_usuario, bag_trainer_nome, item_id_item])
+  @@index([item_id_item], map: "fk_bag_has_item_item1")
+}
+
+model biome {
+  id_biome                  Int                         @id
+  name                      String?                     @db.VarChar(64)
+  biome_has_pokemon_species biome_has_pokemon_species[]
+  map                       map[]
+}
+
+model biome_has_pokemon_species {
+  biome_id_biome                     Int
+  pokemon_species_id_pokemon_species Int
+  biome                              biome           @relation(fields: [biome_id_biome], references: [id_biome], onDelete: Cascade, map: "fk_biome_has_pokemon_species_biome1")
+  pokemon_species                    pokemon_species @relation(fields: [pokemon_species_id_pokemon_species], references: [id_pokemon_species], onDelete: Cascade, map: "fk_biome_has_pokemon_species_pokemon_species1")
+
+  @@id([biome_id_biome, pokemon_species_id_pokemon_species])
+  @@index([pokemon_species_id_pokemon_species], map: "fk_biome_has_pokemon_species_pokemon_species1")
+}
+
+model box {
+  trainer_player_usuario String  @db.VarChar(64)
+  trainer_nome           String  @db.VarChar(100)
+  pokemon_id_pokemon     Int
+  pokemon                pokemon @relation(fields: [pokemon_id_pokemon], references: [id_pokemon], onDelete: Cascade, map: "fk_trainer_has_pokemon_pokemon1")
+  trainer                trainer @relation(fields: [trainer_player_usuario, trainer_nome], references: [username, name], onDelete: Cascade, map: "fk_trainer_has_pokemon_trainer1")
+
+  @@id([trainer_player_usuario, trainer_nome, pokemon_id_pokemon])
+  @@index([pokemon_id_pokemon], map: "fk_trainer_has_pokemon_pokemon1")
+}
+
+/// This model has been renamed to 'game_class' during introspection, because the original name 'class' is reserved.
+model game_class {
+  id_class               Int             @id
+  name                   String?         @db.VarChar(100)
+  required_attributes_id Int
+  atributes              atributes       @relation(fields: [required_attributes_id], references: [id], onDelete: Cascade, map: "fk_class_atributes1")
+  trainer_class          trainer_class[]
+
+  @@index([required_attributes_id], map: "fk_class_atributes1")
+  @@map("class")
+}
+
+
+model trainer_class {
+  trainer_user    String            @db.VarChar(64)
+  trainer_name    String            @db.VarChar(100)
+  id_class        Int
+  obtained_talent obtained_talent[]
+  game_class    game_class      @relation(fields: [id_class], references: [id_class], onDelete: Cascade, map: "fk_trainer_has_class_class1")
+  trainer         trainer           @relation(fields: [trainer_user, trainer_name], references: [username, name], onDelete: Cascade, map: "fk_trainer_has_class_trainer1")
+
+  @@id([trainer_user, trainer_name, id_class])
+  @@index([id_class], map: "fk_trainer_has_class_class1")
+}
+
+model effect {
+  id_effect         Int                 @id
+  name              String?             @db.VarChar(64)
+  attack_has_effect attack_has_effect[]
+}
+
+model effectivness {
+  id_type                          Int
+  id_type1                         Int
+  attack                           Int? @db.TinyInt
+  type_effectivness_id_typeTotype  type @relation("effectivness_id_typeTotype", fields: [id_type], references: [id_type], onDelete: Cascade, map: "fk_type_has_type_type1")
+  type_effectivness_id_type1Totype type @relation("effectivness_id_type1Totype", fields: [id_type1], references: [id_type], onDelete: Cascade, map: "fk_type_has_type_type2")
+
+  @@id([id_type, id_type1])
+  @@index([id_type1], map: "fk_type_has_type_type2")
+}
+
+model item {
+  id_item      Int            @id
+  name         String?        @db.VarChar(64)
+  type         String?        @db.VarChar(64)
+  description  String?        @db.VarChar(1000)
+  bag_has_item bag_has_item[]
+}
+
+model learns {
+  id_pokemon_species Int
+  id_attack          Int
+  method             String?         @db.VarChar(64)
+  level_learned      Int?
+  attack             attack          @relation(fields: [id_attack], references: [id_attack], onDelete: Cascade, map: "fk_pokemon_species_has_attacks_attacks1")
+  pokemon_species    pokemon_species @relation(fields: [id_pokemon_species], references: [id_pokemon_species], onDelete: Cascade, map: "fk_pokemon_species_has_attacks_pokemon_species1")
+
+  @@id([id_pokemon_species, id_attack])
+  @@index([id_attack], map: "fk_pokemon_species_has_attacks_attacks1")
+}
+
+model map {
+  id_map      Int     @id
+  id_biome    Int
+  description String? @db.VarChar(10000)
+  biome       biome   @relation(fields: [id_biome], references: [id_biome], onDelete: Cascade, map: "fk_map_biome1")
+
+  @@index([id_biome], map: "fk_map_biome1")
+}
+
+model moveset {
+  id_pokemon Int
+  id_attack  Int
+  attack     attack  @relation(fields: [id_attack], references: [id_attack], onDelete: Cascade, map: "fk_pokemon_has_attacks_attacks1")
+  pokemon    pokemon @relation(fields: [id_pokemon], references: [id_pokemon], onDelete: Cascade, map: "fk_pokemon_has_attacks_pokemon1")
+
+  @@id([id_pokemon, id_attack])
+  @@index([id_attack], map: "fk_pokemon_has_attacks_attacks1")
+}
+
+model obtained_talent {
+  trainer_class_trainer_player_usuario String        @db.VarChar(64)
+  trainer_class_trainer_nome           String        @db.VarChar(100)
+  trainer_class_class_id_class         Int
+  talent_id_talent                     Int
+  talent                               talent        @relation(fields: [talent_id_talent], references: [id_talent], onDelete: Cascade, map: "fk_trainer_class_has_talent_talent1")
+  trainer_class                        trainer_class @relation(fields: [trainer_class_trainer_player_usuario, trainer_class_trainer_nome, trainer_class_class_id_class], references: [trainer_user, trainer_name, id_class], onDelete: Cascade, map: "fk_trainer_class_has_talent_trainer_class1")
+
+  @@id([trainer_class_trainer_player_usuario, trainer_class_trainer_nome, trainer_class_class_id_class, talent_id_talent])
+  @@index([talent_id_talent], map: "fk_trainer_class_has_talent_talent1")
+}
+
+
+model pokemon_species {
+  id_pokemon_species                  Int                         @id
+  atributes_id                        Int
+  strenght                            Int?
+  intelligence                        Int?
+  jump                                Int?
+  id_type1                            Int?
+  id_type2                            Int?
+  biome_has_pokemon_species           biome_has_pokemon_species[]
+  learns                              learns[]
+  pokemon                             pokemon[]
+  atributes                           atributes                   @relation(fields: [atributes_id], references: [id], onDelete: Cascade, map: "fk_pokemon_species_atributes1")
+  type_pokemon_species_id_type1Totype type?                       @relation("pokemon_species_id_type1Totype", fields: [id_type1], references: [id_type], onDelete: Cascade, map: "fk_pokemon_species_type1")
+  type_pokemon_species_id_type2Totype type?                       @relation("pokemon_species_id_type2Totype", fields: [id_type2], references: [id_type], onDelete: Cascade, map: "fk_pokemon_species_type2")
+
+  @@index([atributes_id], map: "fk_pokemon_species_atributes1")
+  @@index([id_type1], map: "fk_pokemon_species_type1")
+  @@index([id_type2], map: "fk_pokemon_species_type2")
+}
+
+model pokemon {
+  id_pokemon             Int             @id
+  atributes_id           Int
+  name                   String?         @db.VarChar(100)
+  level                  Int?
+  xp                     Int?
+  size_variation_percent Decimal?        @db.Decimal(3, 2)
+  gender                 String?         @db.VarChar(1)
+  id_species             Int
+  box                    box[]
+  moveset                moveset[]
+  atributes              atributes       @relation(fields: [atributes_id], references: [id], onDelete: Cascade, map: "fk_pokemon_atributes1")
+  pokemon_species        pokemon_species @relation(fields: [id_species], references: [id_pokemon_species], onDelete: Cascade, map: "fk_pokemon_pokemon_species1")
+
+  @@index([atributes_id], map: "fk_pokemon_atributes1")
+  @@index([id_species], map: "fk_pokemon_pokemon_species1")
+}
+
+
+
+model talent {
+  id_talent       Int               @id
+  description     String?           @db.VarChar(64)
+  obtained_talent obtained_talent[]
+}
+
+
+
+model type {
+  id_type                                        Int               @id
+  name                                           String?           @db.VarChar(64)
+  attack                                         attack[]
+  effectivness_effectivness_id_typeTotype        effectivness[]    @relation("effectivness_id_typeTotype")
+  effectivness_effectivness_id_type1Totype       effectivness[]    @relation("effectivness_id_type1Totype")
+  pokemon_species_pokemon_species_id_type1Totype pokemon_species[] @relation("pokemon_species_id_type1Totype")
+  pokemon_species_pokemon_species_id_type2Totype pokemon_species[] @relation("pokemon_species_id_type2Totype")
 }
