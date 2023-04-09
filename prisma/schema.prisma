@@ -27,7 +27,7 @@ model atributes {
   basal_speed      Int?
   bonus_speed      Int?
   extra_speed      Int?
-  game_class     game_class[]
+  game_class       game_class[]
   pokemon          pokemon[]
   pokemon_species  pokemon_species[]
   trainer          trainer[]
@@ -58,18 +58,15 @@ model trainer {
   @@index([atributes_id], map: "fk_trainer_atributes1")
 }
 
-
 model attack {
   id_attack         Int                 @id
   name              String?             @db.VarChar(64)
   range             Int?
   area              Int?
-  type_damage       String?             @db.VarChar(64)
   damage            String?             @db.VarChar(100)
-  
   type_id_type      Int
+  type_damage       String?             @db.VarChar(64)
   type              type                @relation(fields: [type_id_type], references: [id_type], onDelete: Cascade, map: "fk_attack_type1")
-  
   attack_has_effect attack_has_effect[]
   learns            learns[]
   moveset           moveset[]
@@ -148,13 +145,12 @@ model game_class {
   @@map("class")
 }
 
-
 model trainer_class {
   trainer_user    String            @db.VarChar(64)
   trainer_name    String            @db.VarChar(100)
   id_class        Int
   obtained_talent obtained_talent[]
-  game_class    game_class      @relation(fields: [id_class], references: [id_class], onDelete: Cascade, map: "fk_trainer_has_class_class1")
+  game_class      game_class        @relation(fields: [id_class], references: [id_class], onDelete: Cascade, map: "fk_trainer_has_class_class1")
   trainer         trainer           @relation(fields: [trainer_user, trainer_name], references: [username, name], onDelete: Cascade, map: "fk_trainer_has_class_trainer1")
 
   @@id([trainer_user, trainer_name, id_class])
@@ -229,7 +225,6 @@ model obtained_talent {
   @@index([talent_id_talent], map: "fk_trainer_class_has_talent_talent1")
 }
 
-
 model pokemon_species {
   id_pokemon_species                  Int                         @id
   atributes_id                        Int
@@ -268,15 +263,11 @@ model pokemon {
   @@index([id_species], map: "fk_pokemon_pokemon_species1")
 }
 
-
-
 model talent {
   id_talent       Int               @id
   description     String?           @db.VarChar(64)
   obtained_talent obtained_talent[]
 }
-
-
 
 model type {
   id_type                                        Int               @id
