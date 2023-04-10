@@ -5,9 +5,9 @@ import {
   type DefaultSession,
 } from "next-auth";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
-import { env } from "~/env.mjs";
 import { prisma } from "~/server/db";
 import CredentialsProvider from "next-auth/providers/credentials";
+import GoogleProvider from "next-auth/providers/google";
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -19,15 +19,10 @@ declare module "next-auth" {
   interface Session extends DefaultSession {
     user: {
       id: string;
-      // ...other properties
-      // role: UserRole;
+      name: string;
+      master: boolean;
     } & DefaultSession["user"];
   }
-
-  // interface User {
-  //   // ...other properties
-  //   // role: UserRole;
-  // }
 }
 
 /**
@@ -40,35 +35,69 @@ export const authOptions: NextAuthOptions = {
     session({ session, user }) {
       if (session.user) {
         session.user.id = user.id;
-        // session.user.role = user.role; <-- put other properties on the session here
       }
       return session;
     },
   },
   adapter: PrismaAdapter(prisma),
   providers: [
-    CredentialsProvider({
-      // The name to display on the sign in form (e.g. "Sign in with...")
-      name: "password",
-      // `credentials` is used to generate a form on the sign in page.
-      // You can specify which fields should be submitted, by adding keys to the `credentials` object.
-      // e.g. domain, username, password, 2FA token, etc.
-      // You can pass any HTML attribute to the <input> tag through the object.
-      credentials: {
-        username: { label: "Username", type: "text", placeholder: "Digite seu usuário"},
-        password: { label: "Password", type: "password", placeholder: "Digite sua senha"},
-      },
-      authorize: async (credentials) => {
-        if(!credentials) return null;
-        if (!credentials.username || !credentials.password) return null;
+    // CredentialsProvider({
+    //   // The name to display on the sign in form (e.g. "Sign in with...")
+    //   name: "user and password",
+    //   // `credentials` is used to generate a form on the sign in page.
+    //   // You can specify which fields should be submitted, by adding keys to the `credentials` object.
+    //   // e.g. domain, username, password, 2FA token, etc.
+    //   // You can pass any HTML attribute to the <input> tag through the object.
+    //   credentials: {
+    //     username: { label: "Username", type: "text", placeholder: "Digite seu usuário"},
+    //     password: { label: "Password", type: "password", placeholder: "Digite sua senha"},
+    //   },
+    //   authorize: async (credentials) => {
+    //     if(!credentials) return null;
+    //     if (!credentials.username || !credentials.password) return null;
         
-        return null;
+    //     const user = await prisma.player.findMany({
+    //       where: {
+    //         AND: [
+    //           { username: credentials.username },
+    //           { password: credentials.password },
+    //         ],
+    //       },
+    //       select: {
+    //         username: true,
+    //         master: true,
+    //       },
+    //     });
+    //     if (user.length == 0) return null;
+        
+    //     console.log(user);
+        
+    //     const returnedUser = user[0];
+
+    //     console.log(user);
+    //     if (returnedUser) return {
+    //       id: returnedUser.username,
+    //       name: returnedUser.username,
+    //       master: returnedUser.master==0 ? false : true,
+    //     };
+    //     return null;
+
+    //   },
+    // }),
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID ? process.env.GOOGLE_CLIENT_ID : "",
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET ? process.env.GOOGLE_CLIENT_SECRET : "",
+      profile(profile) {
+        return {
+          id: profile.id,
+        }
       },
-    })
+    }),
+    
   ],  
   theme: {
     brandColor: "#FF0000",
-    logo: "/pokeball.png",
+    logo: "/img/pokeball.png",
     colorScheme: "dark",
     buttonText: "Entrar",
   },

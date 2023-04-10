@@ -5,13 +5,14 @@ import Link from "next/link";
 import { signIn, signOut, useSession } from "next-auth/react";
 
 import { api } from "~/utils/api";
+import { Query } from "@tanstack/react-query";
 
 const Map: NextPage = () => {
-  const hello = api.example.hello.useQuery({ text: "from tRPC" });
-  const session = useSession();
-  //if not logged in, redirect to login page
-//   if(!session.data) signIn();
-  return (
+    const hello = api.example.hello.useQuery({ text: "from tRPC" });
+    const session = useSession();
+    //if not logged in, redirect to login page
+    if(!session.data) signIn();
+    return (
     <>
         <Head>
             <title>Create T3 App</title>
@@ -26,7 +27,7 @@ const Map: NextPage = () => {
             
         </main>
     </>
-  );
+    );
 };
 
 export default Map;
