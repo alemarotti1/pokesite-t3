@@ -15,10 +15,10 @@ import { useFormik } from "formik";
 const Test: NextPage = () => {
     const growth : string = "grow-1";
   return (
-      <div className="w-full min-h-screen flex flex-col">
+      <div className="w-full min-h-screen flex flex-col bg-gradient-to-b from-cyan-300 to-blue-700">
         <div className="flex flex-row w-full">
-            <div className="bg-slate-100 text-sky-600 rounded-md p-6">Logo</div>
-            <div className="bg-red-400 flex flex-row justify-between p-6 text-white font-bold grow">
+            <div className="bg-slate-100 text-sky-600 rounded-ee-full p-8 px-10">Logo</div>
+            <div className="flex flex-row justify-between p-6 text-white font-bold grow px-32">
                 
                 <div className="">Home</div>
                 <div className="">FAQ</div>
@@ -33,7 +33,7 @@ const Test: NextPage = () => {
             </div>
             
         </div>
-        <div className="bg-green-500">
+        <div className="">
             <div>
                 <div>
                     titulo
