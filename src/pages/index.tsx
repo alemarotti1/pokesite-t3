@@ -10,7 +10,8 @@ const Home: NextPage = () => {
   const hello = api.example.hello.useQuery({ text: "from tRPC" });
   const { data: session } = useSession();
 
-  return( 
+  
+  return(
     <Layout key={"oi"}>
       <h1 className="text-4xl font-bold text-white">   App!</h1>
       <button onClick={() => signOut()}>Sign out</button> 

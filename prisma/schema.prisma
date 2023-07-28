@@ -34,10 +34,19 @@ model atributes {
 }
 
 model player {
-  username String    @id @db.VarChar(64)
-  password String?   @db.VarChar(64)
-  master   Int?      @db.TinyInt
+  username String     @id @db.VarChar(64)
+  password String?    @db.VarChar(64)
+  master   Int?       @db.TinyInt
   trainer  trainer[]
+  campaign campaign[]
+}
+
+model campaign {
+  id             Int       @id @default(autoincrement())
+  name           String    @db.VarChar(255)
+  owner          player    @relation(fields: [owner_username], references: [username])
+  owner_username String    @db.VarChar(64)
+  trainer        trainer[]
 }
 
 model trainer {
@@ -53,6 +62,8 @@ model trainer {
   atributes     atributes       @relation(fields: [atributes_id], references: [id], onDelete: Cascade, map: "fk_trainer_atributes1")
   player        player          @relation(fields: [username], references: [username], onDelete: Cascade, map: "fk_trainer_player")
   trainer_class trainer_class[]
+  campaign      campaign        @relation(fields: [campaignId], references: [id])
+  campaignId    Int
 
   @@id([username, name])
   @@index([atributes_id], map: "fk_trainer_atributes1")

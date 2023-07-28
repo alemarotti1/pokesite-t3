@@ -33,6 +33,15 @@ CREATE TABLE `player` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
+CREATE TABLE `campaign` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `name` VARCHAR(255) NOT NULL,
+    `owner_username` VARCHAR(64) NOT NULL,
+
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
 CREATE TABLE `trainer` (
     `username` VARCHAR(64) NOT NULL,
     `name` VARCHAR(100) NOT NULL,
@@ -41,6 +50,7 @@ CREATE TABLE `trainer` (
     `weight` DECIMAL(5, 2) NULL,
     `height` INTEGER NULL,
     `atributes_id` INTEGER NOT NULL,
+    `campaignId` INTEGER NOT NULL,
 
     INDEX `fk_trainer_atributes1`(`atributes_id`),
     PRIMARY KEY (`username`, `name`)
@@ -253,10 +263,16 @@ CREATE TABLE `type` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- AddForeignKey
+ALTER TABLE `campaign` ADD CONSTRAINT `campaign_owner_username_fkey` FOREIGN KEY (`owner_username`) REFERENCES `player`(`username`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE `trainer` ADD CONSTRAINT `fk_trainer_atributes1` FOREIGN KEY (`atributes_id`) REFERENCES `atributes`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `trainer` ADD CONSTRAINT `fk_trainer_player` FOREIGN KEY (`username`) REFERENCES `player`(`username`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `trainer` ADD CONSTRAINT `trainer_campaignId_fkey` FOREIGN KEY (`campaignId`) REFERENCES `campaign`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `attack` ADD CONSTRAINT `fk_attack_type1` FOREIGN KEY (`type_id_type`) REFERENCES `type`(`id_type`) ON DELETE CASCADE ON UPDATE CASCADE;
